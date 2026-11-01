@@ -1,0 +1,3 @@
+# esp32-s2 ch32v003 programmer
+# Bus 003 Device 104: ID 303a:4004 CNLohr ESP32-S2 CH32V003Programmer
+SUBSYSTEM=="usb", ATTR{idVendor}="303a", ATTR{idProduct}=="4004", TAG+="uaccess"
