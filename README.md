@@ -7,6 +7,11 @@ Uses ISSI IS31FL3731 i2c to 16x9 charlieplex LED matrix driver, and WCH CH32V003
 
 By defaul the SAO i2c connections go to ch32v003, but can be changed with solder jumpers to connect the LED matrix driver i2c to SAO i2c directly.
 
+## SAO Operation
+TODO:
+I'd like to switch the active animation, and maybe configure it using the two buttons
+also be able to command animations from badge i2c
+
 ## Included Animations
  * Bounce: Kind of like bouncing DVD logo animation
  * Plasma
