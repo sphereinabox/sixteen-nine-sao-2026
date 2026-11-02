@@ -12,32 +12,29 @@ struct conway_state
 {
     // uint8_t state[IS31_HEIGHT * IS31_WIDTH];
     uint16_t rows[IS31_HEIGHT];
+    uint16_t rows_older[IS31_HEIGHT];
+    uint16_t steady_counter;
 } cs;
 
 void conways_init()
 {
-    // setup a new state
+    cs.steady_counter = 0;
+    // setup a new random state:
     for (int r = 0; r < IS31_HEIGHT; r++)
     {
+        cs.rows_older[r] = 0x0000;
         cs.rows[r] = 0xFFFF & rand();
-        // cs.rows[r] = 0;
-        // for (int c = 0; c < IS31_WIDTH; c++)
-        // {
-        //     cs.state[IS31_WIDTH * r + c] = 0;
-        // }
     }
 
-    // glider
+    // // glider
+    // for (int r = 0; r < IS31_HEIGHT; r++)
+    // {
+    //     cs.rows_older[r] = 0x0000;
+    //     cs.rows[r] = 0x0000;
+    // }
     // cs.rows[0] = 0b010;
     // cs.rows[1] = 0b100;
     // cs.rows[2] = 0b111;
-
-    // glider
-    // cs.state[IS31_WIDTH * 0 + 1] = 1;
-    // cs.state[IS31_WIDTH * 1 + 2] = 1;
-    // cs.state[IS31_WIDTH * 2 + 0] = 1;
-    // cs.state[IS31_WIDTH * 2 + 1] = 1;
-    // cs.state[IS31_WIDTH * 2 + 2] = 1;
 }
 
 uint8_t sample(int col, int row)
@@ -63,15 +60,6 @@ void conways_advance()
         next[r] = 0;
     }
 
-    // uint8_t next[IS31_HEIGHT * IS31_WIDTH];
-    // for (int r = 0; r < IS31_HEIGHT; r++)
-    // {
-    //     for (int c = 0; c < IS31_WIDTH; c++)
-    //     {
-    //         next[IS31_WIDTH * r + c] = 0;
-    //     }
-    // }
-
     for (int c = 0; c < IS31_WIDTH; c++)
     {
         for (int r = 0; r < IS31_HEIGHT; r++)
@@ -86,22 +74,6 @@ void conways_advance()
                 }
             }
             living_neighbors -= was_alive;
-            // // up left
-            // living_neighbors += sample(c - 1, r - 1);
-            // // up center
-            // living_neighbors += sample(c + 0, r - 1);
-            // // up right
-            // living_neighbors += sample(c + 1, r - 1);
-            // // left
-            // living_neighbors += sample(c - 1, r + 0);
-            // // right
-            // living_neighbors += sample(c + 1, r + 0);
-            // // down left
-            // living_neighbors += sample(c - 1, r + 1);
-            // // down center
-            // living_neighbors += sample(c + 0, r + 1);
-            // // down right
-            // living_neighbors += sample(c + 1, r + 1);
             uint8_t alive = 0;
 
             if (was_alive && living_neighbors < 2)
@@ -116,7 +88,6 @@ void conways_advance()
                 alive = 0;
 
             next[r] = next[r] | (alive << c);
-            // next[IS31_WIDTH * r + c] = alive;
 
             if (alive)
             {
@@ -125,21 +96,26 @@ void conways_advance()
         }
     }
 
+    // check for if state is same as 2 previous
+    cs.steady_counter++;
+    for (int r = 0; r < IS31_HEIGHT; r++)
+    {
+        if (cs.rows_older[r] != next[r]) {
+            cs.steady_counter = 0;
+        }
+    }
+
     // copy next state over previous state
     for (int r = 0; r < IS31_HEIGHT; r++)
     {
+        cs.rows_older[r] = cs.rows[r];
         cs.rows[r] = next[r];
     }
 
-    // for (int r = 0; r < IS31_HEIGHT; r++)
-    // {
-    //     for (int c = 0; c < IS31_WIDTH; c++)
-    //     {
-    //         cs.state[IS31_WIDTH * r + c] =
-    //             next[IS31_WIDTH * r + c] |
-    //             (0xFF & (cs.state[IS31_WIDTH * r + c] << 1));
-    //     }
-    // }
-
+    // TODO: make this threshold more time-based, like 1 second of just blinker, not update-count based
+    if (cs.steady_counter >= 25) {
+        conways_init();
+    }
+    
     is31_flip();
 }
