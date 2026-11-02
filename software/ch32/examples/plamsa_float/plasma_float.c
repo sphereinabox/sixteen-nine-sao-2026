@@ -9,14 +9,11 @@ The floating point functions alone add 4k to flash size.
 */
 #include "ch32fun.h"
 #include <stdio.h>
-
-// use defines to make more meaningful names for our GPIO pins
-#define PIN_1 PD0
-#define PIN_KEVIN PC0
-
+#include <math.h>
 #include "is31.h"
 
-#include <math.h>
+// use defines to make more meaningful names for our GPIO pins
+#define PIN_LED PD0
 
 float my_absf(float f) {
 	if (f < 0) return -f;
@@ -105,20 +102,7 @@ int main()
 
 	funGpioInitAll(); // Enable GPIOs
 
-	funPinMode(PIN_1, GPIO_Speed_10MHz | GPIO_CNF_OUT_PP);	   // Set PIN_1 to output
-	funPinMode(PIN_KEVIN, GPIO_Speed_10MHz | GPIO_CNF_OUT_PP); // Set PIN_KEVIN to output
-
-	// blink demo:
-	// while(1)
-	// {
-	// 	printf("test\n");
-	// 	funDigitalWrite( PIN_1,     FUN_HIGH ); // Turn on PIN_1
-	// 	funDigitalWrite( PIN_KEVIN, FUN_HIGH ); // Turn on PIN_KEVIN
-	// 	Delay_Ms( 1000 );
-	// 	funDigitalWrite( PIN_1,     FUN_LOW );  // Turn off PIN_1
-	// 	funDigitalWrite( PIN_KEVIN, FUN_LOW );  // Turn off PIN_KEVIN
-	// 	Delay_Ms( 1000 );
-	// }
+	funPinMode(PIN_LED, GPIO_Speed_10MHz | GPIO_CNF_OUT_PP);	   // Set PIN_LED to output
 
 	Delay_Ms(100);
 	printf("\r\r\n\ni2c test\n\r");
