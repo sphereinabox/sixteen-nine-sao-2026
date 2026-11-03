@@ -20,41 +20,26 @@ float my_absf(float f)
 
 #define MY_PI 3.1415926f
 
+float my_cosf(float f) {
+    // cosine approximation for positive-half 
+    // between f about -pi/2 to pi/2
+    return 0.9711921034338193f + -0.40126819068598596f*f*f;
+}
 
 float my_sinf(float f)
 {
-    // return sinf(f);
-
-    // triangle wave
-    // f = my_absf(f/3.14f);
-    // return fabs(floorf(f) - f - 0.5f)*2.0f - 1.0f;
-
-    // sawtooth wave
-    f = my_absf(f / 3.1415926f);
-    return (floorf(f) - f) * 2.0f - 1.0f;
-
-    // approximation?
-    // sin(x) = cos(x + pi/2)
-    // float temp = my_absf(f + 0.5f * MY_PI) / MY_PI;
-    // f = floorf(f) - f;
-    // // approximation for cos(f)
-    // if (f <= 0.5f * MY_PI) {
-    //     // positive
-    //     return 1.0f - (5 * f * f) / (MY_PI * MY_PI + f * f);
-    // } else {
-    //     // negative
-    //     f = f - 0.5f * MY_PI;
-    //     temp = 1.0f - (5 * f * f) / (MY_PI * MY_PI + f * f);
-    //     return -temp;
-    // }
+    int count = (int)(f / (MY_PI));
+    float f_for_cos = my_absf(f-MY_PI/2) - (count)*(MY_PI);
+    if (count % 2 == 1)
+        return -my_cosf(f_for_cos);
+    return my_cosf(f_for_cos);
 }
 
 float my_sqrtf(float dx, float dy)
 {
     // compute approximation for sqrt(dx*dx+dy*dy)
     float s = dx*dx + dy*dy;
-    float est = 
-        (dx + dy * dy / 2 / dx);
+    float est = 2.91678315109797f + s*0.0799134645090443f + s*s*-0.00011210634759820093f;
     for (int i = 0; i < 2; i++) {
         est = 0.5f * (est + (s / est));
     }
