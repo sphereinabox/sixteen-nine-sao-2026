@@ -6,7 +6,7 @@
 #include "funconfig.h"
 #include "lib_rand.h"
 
-#define CONWAYS_INTENSITY 64
+#define CONWAYS_INTENSITY 63
 
 struct conway_state
 {
@@ -14,10 +14,12 @@ struct conway_state
     uint16_t rows[IS31_HEIGHT];
     uint16_t rows_older[IS31_HEIGHT];
     uint16_t steady_counter;
+    uint16_t delay_counter;
 } cs;
 
 void conways_init()
 {
+    cs.delay_counter = 0;
     cs.steady_counter = 0;
     // setup a new random state:
     for (int r = 0; r < IS31_HEIGHT; r++)
@@ -53,7 +55,24 @@ uint8_t sample(int col, int row)
 
 void conways_advance()
 {
-    is31_clear();
+    // reduce update rate by not updating every conways_advance() call:
+    cs.delay_counter++;
+    if (cs.delay_counter <= 4) {
+        return;
+    } else {
+        cs.delay_counter = 0;
+    }
+
+    // was: is31_clear();
+    // fadeout living cells instead of turning them fully off:
+    for (int c = 0; c < IS31_WIDTH; c++)
+    {
+        for (int r = 0; r < IS31_HEIGHT; r++)
+        {
+            uint8_t val = is31_getpixel(c, r);
+            is31_setpixel(c,r, val >> 2);
+        }
+    }
 
     uint16_t next[IS31_HEIGHT];
     for (int r = 0; r < IS31_HEIGHT; r++) {
