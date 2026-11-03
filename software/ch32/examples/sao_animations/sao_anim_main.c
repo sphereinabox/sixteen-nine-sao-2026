@@ -29,6 +29,7 @@ int main()
 	// Set PIN_LED to output
 	// the LED lights up when pin is pulled low
 	funPinMode(PIN_LED, GPIO_Speed_10MHz | GPIO_CNF_OUT_PP);
+	funDigitalWrite(PIN_LED, 1); // LED off
 
 	// configure button pins as input pulled-up:
     funPinMode( PIN_BTN_A, GPIO_CFGLR_IN_PUPD );
