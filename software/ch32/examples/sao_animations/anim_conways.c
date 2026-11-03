@@ -15,10 +15,12 @@ struct conway_state
     uint16_t rows_older[IS31_HEIGHT];
     uint16_t steady_counter;
     uint16_t delay_counter;
+    uint32_t generation_counter;
 } cs;
 
 void conways_init()
 {
+    cs.generation_counter = 0;
     cs.delay_counter = 0;
     cs.steady_counter = 0;
     // setup a new random state:
@@ -59,10 +61,16 @@ void conways_advance()
     cs.delay_counter++;
     if (cs.delay_counter <= 4) {
         return;
-    } else {
-        cs.delay_counter = 0;
     }
+    cs.delay_counter = 0;
+    cs.generation_counter++;
 
+    // don't get stuck with single glider flying forever:
+    if (500 < cs.generation_counter) {
+        // re-seed
+        conways_init();
+    }
+    
     // was: is31_clear();
     // fadeout living cells instead of turning them fully off:
     for (int c = 0; c < IS31_WIDTH; c++)
