@@ -13,6 +13,8 @@ volatile uint8_t i2c_registers[255] = {
 	15,
 	// driver name length
 	14,
+	// driver data length
+	0,
 	// num extra drivers
 	0,
 	// Name, no null terminator
@@ -140,8 +142,10 @@ int main()
 		funDigitalWrite(PIN_LED, (i2c_registers[SAO_REG_LED] & 1) == 1 ? 0 : 1);
 
 		// process input
-        int a_pressed = (0 == funDigitalRead(PIN_BTN_A));
-        int b_pressed = (0 == funDigitalRead(PIN_BTN_B));
+		int a_pressed = (0 == funDigitalRead(PIN_BTN_A));
+		int b_pressed = (0 == funDigitalRead(PIN_BTN_B));
+
+		uint8_t button_bits = 0;
 
 		if (a_was_pressed && !a_pressed)
 		{
@@ -154,6 +158,24 @@ int main()
 
 			printf("button pressed, switched to anim %d\n", anim);
 		}
+
+		if (b_was_pressed && !b_pressed)
+		{
+			anim -= 1;
+			if (anim < 0)
+			{
+				anim = anim_max-1;
+			}
+			// todo: anim init
+
+			printf("button pressed, switched to anim %d\n", anim);
+		}
+
+		if (a_pressed)
+			button_bits = button_bits | 0x1;
+		if (b_pressed)
+			button_bits = button_bits | 0x2;
+		i2c_registers[SAO_REG_BUTTON_BITS] = button_bits;
 
 		// TODO: advance animation
 		switch (anim)

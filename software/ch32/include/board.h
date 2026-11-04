@@ -7,9 +7,9 @@
 // 0x50 is decimal 80
 #define SAO_I2C_ADDRESS 0x50
 // the header is bytes at address 0 through 35
-// #define SAO_REG_BUTTON_BITS 48
+#define SAO_REG_BUTTON_BITS 48
 #define SAO_REG_LED 49
-// #define SAO_REG_ANIMATION_CHOICE 50
+#define SAO_REG_ANIMATION_CHOICE 50
 // #define SAO_REG_ANIM_INTENSITY_MAX 51
 // #define SAO_REG_ANIM_CONWAY_SLOWDOWN 52
 // #define SAO_REG_ANIM_CONWAY_OPTIONS 53
