@@ -32,17 +32,68 @@ int main()
 	funDigitalWrite(PIN_LED, 1); // LED off
 
 	// configure button pins as input pulled-up:
-    funPinMode( PIN_BTN_A, GPIO_CFGLR_IN_PUPD );
-    funDigitalWrite( PIN_BTN_A, 1 );
-    funPinMode( PIN_BTN_B, GPIO_CFGLR_IN_PUPD );
-    funDigitalWrite( PIN_BTN_B, 1 );
+	funPinMode(PIN_BTN_A, GPIO_CFGLR_IN_PUPD);
+	funDigitalWrite(PIN_BTN_A, 1);
+	funPinMode(PIN_BTN_B, GPIO_CFGLR_IN_PUPD);
+	funDigitalWrite(PIN_BTN_B, 1);
 
+	// Check if i2c pins for is31 are jumpered to I2C pins for SAO
+	// then abort animations so badge can control display directly.
+	// First: configure i2c pins for IS31 as outputs
+	funPinMode(IS31_PIN_SDA, GPIO_CFGLR_OUT_10Mhz_PP); // SDA
+	funDigitalWrite(IS31_PIN_SDA, 1);
+	funPinMode(IS31_PIN_SCL, GPIO_CFGLR_OUT_10Mhz_PP); // SCL
+	funDigitalWrite(IS31_PIN_SCL, 1);
+	// configure SAO i2c pins as inputs
+	funPinMode(SAO_PIN_SDA, GPIO_CFGLR_IN_PUPD); // SDA
+	funPinMode(SAO_PIN_SCL, GPIO_CFGLR_IN_PUPD); // SCL
+	funDigitalWrite(SAO_PIN_SDA, 1);
+	funDigitalWrite(SAO_PIN_SCL, 1);
+	Delay_Us(1);
+	if (funDigitalRead(SAO_PIN_SDA) == 0 ||
+		funDigitalRead(SAO_PIN_SCL) == 0)
+	{
+		// well I'm not pulling them down, so they're not connected
+		printf("SAO_PIN_SDA or SAO_PIN_SCL is low?\n");
+	}
+	else
+	{
+		// try IS31_PIN_SCL/SDA low
+		funDigitalWrite(IS31_PIN_SCL, 0);
+		funDigitalWrite(IS31_PIN_SDA, 0);
+		Delay_Ms(1);
+		if (funDigitalRead(SAO_PIN_SCL) == 0 ||
+			funDigitalRead(SAO_PIN_SCL) == 0)
+		{
+			funDigitalWrite(IS31_PIN_SCL, 1);
+			funDigitalWrite(IS31_PIN_SDA, 1);
+			// configure bitbang i2c outputs as floating inputs:
+			funPinMode(IS31_PIN_SDA, GPIO_CFGLR_IN_FLOAT); // SDA
+			funPinMode(IS31_PIN_SCL, GPIO_CFGLR_IN_FLOAT); // SCL
+
+			blink_error(2);
+
+			while (true)
+			{
+				printf("Powered up and IS31_PIN_SCL/SDA to SAO_PIN_SCL/SDA\n");
+				printf("Skipping animations so badge can control display directly...\n");
+				Delay_Ms(1000);
+			}
+		}
+	}
+
+	// Initialize I2C slave pins for SAO:
+	funPinMode(SAO_PIN_SDA, GPIO_CFGLR_OUT_10Mhz_AF_OD); // SDA
+	funPinMode(SAO_PIN_SCL, GPIO_CFGLR_OUT_10Mhz_AF_OD); // SCL
+	SetupI2CSlave(SAO_I2C_ADDRESS, i2c_registers, sizeof(i2c_registers), i2c_onWrite, NULL, false);
+
+	// Initalize IS31FL3731 LED matrix:
 	if (is31_init() != 0)
 	{
 		printf("IS31 display init failed\n");
 		// display init failed
 		while (1)
-			blink_error(2);
+			blink_error(3);
 	}
 
 	// TODO: setup animation
