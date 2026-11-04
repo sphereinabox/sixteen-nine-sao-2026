@@ -103,7 +103,14 @@ void find_letter_bitmap(char c) {
 void textscroll_init()
 {
     ts.state = STATE_LETTER_NEW;
-    ts.text = "Hello World!";
+    ts.text = 
+        "Hello Hackaday Supercon X 2026\n"
+        "The quick brown fox jumps over the lazy dog\n"
+        "Waltz, bad nymph, for quick jigs vex\n"
+        "Sphinx of black quartz, judge my vow.\n"
+        "How vexingly quick daft zebras jump!\n"
+        "The five boxing wizards jump quickly.\n"
+        "Pack my box with five dozen liquor jugs.";
 
     is31_clear();
 }
@@ -123,7 +130,7 @@ void textscroll_advance()
 
     if (ts.state == STATE_LETTER_NEW)
     {
-        if (ts.text[0] == '\0')
+        if (ts.text[0] == '\0' || ts.text[0] == '\n')
         {
             ts.state = STATE_TEXT_END;
             ts.letter_col_count = 0;
@@ -185,8 +192,13 @@ void textscroll_advance()
         ts.letter_col_count += 1;
         if (16 <= ts.letter_col_count)
         {
-            // return;
-            textscroll_init();
+            if (ts.text[0] == '\0') {
+                // return;
+                textscroll_init();
+            } else {
+                ts.text = ts.text + 1;
+                ts.state = STATE_LETTER_NEW;
+            }
         }
     }
 
