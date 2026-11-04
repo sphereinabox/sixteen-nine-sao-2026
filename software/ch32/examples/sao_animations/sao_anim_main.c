@@ -1,8 +1,27 @@
 #include "ch32fun.h"
 #include "board.h"
+#include "i2c_slave.h"
 #include <stdio.h>
 #include "anim.h"
 #include "is31.h"
+
+volatile uint8_t i2c_registers[255] = {
+	// see format from https://badge.team/docs/standards/sao/binary_descriptor/
+	// header
+	'L','I','F','E',
+	// name length
+	15,
+	// driver name length
+	14,
+	// num extra drivers
+	0,
+	// Name, no null terminator
+	'S','i','x','t','e','e','n','N','i','n','e','C','h','3','2',
+	// Driver name, no null terminator
+	'S','i','x','t','e','e','n','9','C','h','3','2','V','1',
+	// zeros for the rest for now
+	0x00
+};
 
 void blink_error(int num)
 {
@@ -18,6 +37,13 @@ void blink_error(int num)
 		Delay_Ms(250);
 	}
 	Delay_Ms(500);
+}
+
+void i2c_onWrite(uint8_t reg, uint8_t length)
+{
+	// Called from the interrupt when an I2C write operation completes
+	// Put one-off operations involving changes to i2c_registers here,
+	// but you can also just read i2c_registers from main().
 }
 
 int main()
@@ -110,13 +136,18 @@ int main()
 	// animation loop
 	while (1)
 	{
+		// respond to i2c changes
+		funDigitalWrite(PIN_LED, (i2c_registers[SAO_REG_LED] & 1) == 1 ? 0 : 1);
+
 		// process input
         int a_pressed = (0 == funDigitalRead(PIN_BTN_A));
         int b_pressed = (0 == funDigitalRead(PIN_BTN_B));
 
-		if (a_was_pressed && !a_pressed) {
+		if (a_was_pressed && !a_pressed)
+		{
 			anim += 1;
-			if (anim_max <= anim) {
+			if (anim_max <= anim)
+			{
 				anim = 0;
 			}
 			// todo: anim init
