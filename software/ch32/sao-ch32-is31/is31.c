@@ -7,8 +7,11 @@
 
 // use bitbang i2c because I want to leave i2c 
 // hardware peripheral available for SAO comms
-#define DELAY1 Delay_Us(1);
-#define DELAY2 Delay_Us(2);
+// #define DELAY1 Delay_Us(1);
+// #define DELAY2 Delay_Us(2);
+// probably noncompliant but it works and updates faster:
+#define DELAY1 DelaySysTick(0);
+#define DELAY2 DelaySysTick(0);
 #define DSCL_IHIGH  { funPinMode( IS31_PIN_SCL, GPIO_CFGLR_IN_PUPD ); funDigitalWrite( IS31_PIN_SCL, 1 ); } 
 #define DSDA_IHIGH  { funPinMode( IS31_PIN_SDA, GPIO_CFGLR_IN_PUPD ); funDigitalWrite( IS31_PIN_SDA, 1 ); } 
 #define DSDA_INPUT  { funPinMode( IS31_PIN_SDA, GPIO_CFGLR_IN_PUPD ); funDigitalWrite( IS31_PIN_SDA, 1 ); } 
