@@ -41,11 +41,29 @@ void blink_error(int num)
 	Delay_Ms(500);
 }
 
+volatile int isr_i2c_write_start = 0, isr_i2c_write_end = 0;
+
 void i2c_onWrite(uint8_t reg, uint8_t length)
 {
 	// Called from the interrupt when an I2C write operation completes
 	// Put one-off operations involving changes to i2c_registers here,
 	// but you can also just read i2c_registers from main().
+
+	if (length <= 0) {
+		return;
+	}
+	// record the max start/end (inclusive) addresses
+	
+	int i2c_write_start = isr_i2c_write_start;
+	int i2c_write_end = isr_i2c_write_end;
+	if (reg < i2c_write_start) {
+		i2c_write_start = reg;
+	}
+	if (isr_i2c_write_end < reg + length - 1) {
+		i2c_write_end = reg + length - 1;
+	}
+	isr_i2c_write_start = i2c_write_start;
+	isr_i2c_write_end = i2c_write_end;
 }
 
 int main()
@@ -124,14 +142,20 @@ int main()
 			blink_error(3);
 	}
 
+	// set i2c bus defaults:
+	int anim = 1;
+	i2c_registers[SAO_REG_ANIMATION_CHOICE] = 1;
+	anim = 1;
+
+	// one larger than highest animation number:
+	const int anim_max = 5;
+
 	// TODO: setup animation
 	bounce_init();
 	conways_init();
 	textscroll_init();
 	plasma_init();
 
-	int anim = 3;
-	int anim_max = 4;
 	int a_was_pressed = 0; // right button
 	int b_was_pressed = 0; // left button
 
@@ -140,6 +164,20 @@ int main()
 	{
 		// respond to i2c changes
 		funDigitalWrite(PIN_LED, (i2c_registers[SAO_REG_LED] & 1) == 1 ? 0 : 1);
+
+		int i2c_write_start = isr_i2c_write_start;
+		int i2c_write_end = isr_i2c_write_end;
+		isr_i2c_write_start = 0;
+		isr_i2c_write_end = 0;
+
+		if ((i2c_write_start != 0) && (i2c_write_end != 0)) {
+			printf("i2c regs written %d through %d\n", i2c_write_start, i2c_write_end);
+		}
+
+		if (i2c_write_start <= SAO_REG_ANIMATION_CHOICE &&
+			SAO_REG_ANIMATION_CHOICE <= i2c_write_end) {
+			anim = i2c_registers[SAO_REG_ANIMATION_CHOICE];
+		}
 
 		// process input
 		int a_pressed = (0 == funDigitalRead(PIN_BTN_A));
@@ -152,7 +190,7 @@ int main()
 			anim += 1;
 			if (anim_max <= anim)
 			{
-				anim = 0;
+				anim = 1;
 			}
 			// todo: anim init
 
@@ -162,7 +200,7 @@ int main()
 		if (b_was_pressed && !b_pressed)
 		{
 			anim -= 1;
-			if (anim < 0)
+			if (anim <= 0)
 			{
 				anim = anim_max-1;
 			}
@@ -181,7 +219,8 @@ int main()
 		switch (anim)
 		{
 		case 0:
-			bounce_advance();
+			// static
+			// TODO: draw from i2c buffer
 			break;
 		case 1:
 			conways_advance();
@@ -192,8 +231,11 @@ int main()
 		case 3:
 			plasma_advance();
 			break;
+		case 4:
+			bounce_advance();
+			break;
 		default:
-			anim = 0;
+			anim = 1;
 			break;
 		}
 		// TODO: delay amount specified by animation
