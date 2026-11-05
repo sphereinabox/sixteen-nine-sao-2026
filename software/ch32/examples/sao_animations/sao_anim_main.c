@@ -25,6 +25,8 @@ volatile uint8_t i2c_registers[255] = {
 	0x00
 };
 
+uint8_t max_intensity = 64;
+
 void blink_error(int num)
 {
 	// blink LED num times
@@ -146,6 +148,7 @@ int main()
 	int anim = 1;
 	i2c_registers[SAO_REG_ANIMATION_CHOICE] = 1;
 	anim = 1;
+	i2c_registers[SAO_REG_ANIM_INTENSITY_MAX] = max_intensity;
 
 	// one larger than highest animation number:
 	const int anim_max = 5;
@@ -177,6 +180,11 @@ int main()
 		if (i2c_write_start <= SAO_REG_ANIMATION_CHOICE &&
 			SAO_REG_ANIMATION_CHOICE <= i2c_write_end) {
 			anim = i2c_registers[SAO_REG_ANIMATION_CHOICE];
+		}
+
+		if (i2c_write_start <= SAO_REG_ANIMATION_CHOICE &&
+			SAO_REG_ANIM_INTENSITY_MAX <= i2c_write_end) {
+			max_intensity = i2c_registers[SAO_REG_ANIM_INTENSITY_MAX];
 		}
 
 		// process input

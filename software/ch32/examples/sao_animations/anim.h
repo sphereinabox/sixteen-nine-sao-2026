@@ -5,6 +5,7 @@
 
 // defined in textscroll_font.c
 extern const uint8_t font_bitmap[];
+extern uint8_t max_intensity;
 
 void bounce_init();
 void bounce_advance();

@@ -2,8 +2,6 @@
 #include "board.h"
 #include "is31.h"
 
-#define box_intensity 64
-
 struct bounce_state
 {
     int width, height;
@@ -34,7 +32,7 @@ void bounce_advance()
     {
         for (int dh = 0; dh < b.height; dh++)
         {
-            is31_setpixel(b.x + dw, b.y + dh, box_intensity);
+            is31_setpixel(b.x + dw, b.y + dh, max_intensity);
         }
     }
 

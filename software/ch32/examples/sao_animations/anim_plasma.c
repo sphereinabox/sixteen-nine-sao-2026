@@ -98,7 +98,7 @@ void plasma_advance()
             // color_f *= color_f*color_f*color_f # Uncomment this line to make it even darker :)
 
             // is31_setpixel(col, row, (int)(color_f * 255)); // brighter
-            is31_setpixel(col, row, (int)(color_f * 64.0f)); // dimmer
+            is31_setpixel(col, row, (int)(color_f * max_intensity)); // dimmer
         }
     }
 

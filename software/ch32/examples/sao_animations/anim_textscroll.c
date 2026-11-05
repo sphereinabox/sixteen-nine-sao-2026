@@ -4,10 +4,6 @@
 #include "anim.h"
 #include <stdint.h>
 
-
-// 0..255
-#define FONT_INTENSITY_VALUE 64
-
 // text-scroll state
 struct
 {
@@ -155,7 +151,7 @@ void textscroll_advance()
         {
             if (ts.letter_font[row] & col_mask)
             {
-                is31_setpixel(15, row, FONT_INTENSITY_VALUE);
+                is31_setpixel(15, row, max_intensity);
             }
             else
             {

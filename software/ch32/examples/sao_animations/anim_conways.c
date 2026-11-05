@@ -6,8 +6,6 @@
 #include "funconfig.h"
 #include "lib_rand.h"
 
-#define CONWAYS_INTENSITY 63
-
 struct conway_state
 {
     // uint8_t state[IS31_HEIGHT * IS31_WIDTH];
@@ -118,7 +116,7 @@ void conways_advance()
 
             if (alive)
             {
-                is31_setpixel(c, r, CONWAYS_INTENSITY);
+                is31_setpixel(c, r, max_intensity);
             }
         }
     }
