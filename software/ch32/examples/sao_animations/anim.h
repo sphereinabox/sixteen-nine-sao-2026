@@ -16,7 +16,7 @@ void conways_advance();
 void plasma_init();
 void plasma_advance();
 
-void textscroll_init();
+void textscroll_init(volatile uint8_t * text);
 void textscroll_advance();
 
 #endif

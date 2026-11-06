@@ -4,6 +4,9 @@
 #include "anim.h"
 #include <stdint.h>
 
+// 254-64 in i2c buffer
+#define TEXT_BYTES_MAX 190
+
 // text-scroll state
 struct
 {
@@ -19,14 +22,17 @@ struct
     uint8_t letter_col_count;
     // one byte per row of pixels for letter, first is top row and so-on.
     uint8_t letter_font[9];
-    char *text;
+    char textbuf[192];
+    char *textptr;
 } ts;
 
 // find width of character and letter bitmap
 // fills: ts.letter_col_count, ts.letter_font
-void find_letter_bitmap(char c) {
+void find_letter_bitmap(char c)
+{
     // start with special cases:
-    if (c == ' ') {
+    if (c == ' ')
+    {
         ts.letter_col_count = 2;
         memset(ts.letter_font, 0x00, 9);
         return;
@@ -44,7 +50,6 @@ void find_letter_bitmap(char c) {
     ts.letter_font[7] = 0b10000010;
     ts.letter_font[8] = 0b11111110;
 
-
     // find c in font_bitmap_letters
     int letter_index = 0;
     while (1)
@@ -52,11 +57,11 @@ void find_letter_bitmap(char c) {
         if (font_bitmap[letter_index * 10] == '\0')
         {
             // not found
-            printf("no '%c' in font\n", ts.text[0]);
+            printf("no '%c' in font\n", ts.textptr[0]);
             letter_index = 0;
             break;
         }
-        if (font_bitmap[letter_index * 10] == ts.text[0])
+        if (font_bitmap[letter_index * 10] == ts.textptr[0])
         {
             // printf("found '%c' in font at index %d\n", text[0], letter_index);
             break;
@@ -96,19 +101,21 @@ void find_letter_bitmap(char c) {
     }
 }
 
-void textscroll_init()
+void textscroll_restart()
 {
     ts.state = STATE_LETTER_NEW;
-    ts.text = 
-        "Hello Hackaday Supercon X 2026\n"
-        "The quick brown fox jumps over the lazy dog\n"
-        "Waltz, bad nymph, for quick jigs vex\n"
-        "Sphinx of black quartz, judge my vow.\n"
-        "How vexingly quick daft zebras jump!\n"
-        "The five boxing wizards jump quickly.\n"
-        "Pack my box with five dozen liquor jugs.";
-
+    ts.textptr = ts.textbuf;
     is31_clear();
+}
+
+void textscroll_init(volatile uint8_t *text)
+{
+    for (int i = 0; i < TEXT_BYTES_MAX; i++)
+    {
+        ts.textbuf[i] = text[i];
+    }
+    ts.textbuf[TEXT_BYTES_MAX - 1] = '\0';
+    textscroll_restart();
 }
 
 void textscroll_advance()
@@ -126,7 +133,7 @@ void textscroll_advance()
 
     if (ts.state == STATE_LETTER_NEW)
     {
-        if (ts.text[0] == '\0' || ts.text[0] == '\n')
+        if (ts.textptr[0] == '\0' || ts.textptr[0] == '\n')
         {
             ts.state = STATE_TEXT_END;
             ts.letter_col_count = 0;
@@ -134,7 +141,7 @@ void textscroll_advance()
         else
         {
             ts.state = STATE_LETTER;
-            find_letter_bitmap(ts.text[0]);
+            find_letter_bitmap(ts.textptr[0]);
         }
 
         // printf("after STATE_LETTER_NEW\n");
@@ -175,7 +182,7 @@ void textscroll_advance()
         {
             is31_setpixel(15, row, 0);
         }
-        ts.text = ts.text + 1;
+        ts.textptr = ts.textptr + 1;
         ts.state = STATE_LETTER_NEW;
     }
     else if (ts.state == STATE_TEXT_END)
@@ -188,11 +195,14 @@ void textscroll_advance()
         ts.letter_col_count += 1;
         if (16 <= ts.letter_col_count)
         {
-            if (ts.text[0] == '\0') {
+            if (ts.textptr[0] == '\0')
+            {
                 // return;
-                textscroll_init();
-            } else {
-                ts.text = ts.text + 1;
+                textscroll_restart();
+            }
+            else
+            {
+                ts.textptr = ts.textptr + 1;
                 ts.state = STATE_LETTER_NEW;
             }
         }

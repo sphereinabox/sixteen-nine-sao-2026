@@ -146,17 +146,23 @@ int main()
 
 	// set i2c bus defaults:
 	int anim = 1;
-	i2c_registers[SAO_REG_ANIMATION_CHOICE] = 1;
-	anim = 1;
+	i2c_registers[SAO_REG_ANIMATION_CHOICE] = anim;
 	i2c_registers[SAO_REG_ANIM_INTENSITY_MAX] = max_intensity;
+	strncpy((char *)&(i2c_registers[SAO_REG_DISPLAY_OR_TEXT]),
+		"Hello Hackaday Supercon X 2026\n"
+        "How vexingly quick daft zebras jump!\n"
+        "The five boxing wizards jump quickly.\n"
+        "Pack my box with five dozen liquor jugs.", 
+		254-SAO_REG_DISPLAY_OR_TEXT-1);
 
 	// one larger than highest animation number:
 	const int anim_max = 5;
 
-	// TODO: setup animation
+	// setup animations:
 	bounce_init();
 	conways_init();
-	textscroll_init();
+	textscroll_init(
+		&(i2c_registers[SAO_REG_DISPLAY_OR_TEXT]));
 	plasma_init();
 
 	int a_was_pressed = 0; // right button
@@ -180,6 +186,23 @@ int main()
 		if (i2c_write_start <= SAO_REG_ANIMATION_CHOICE &&
 			SAO_REG_ANIMATION_CHOICE <= i2c_write_end) {
 			anim = i2c_registers[SAO_REG_ANIMATION_CHOICE];
+
+			if (anim == SAO_ANIMATION_CHOICE_STATIC) {
+				// update static display with pixels from i2c buffer
+				for (int row = 0; row < IS31_HEIGHT; row++) {
+					for (int col = 0; col < IS31_WIDTH; col++) {
+						is31_setpixel(col, row, i2c_registers[SAO_REG_DISPLAY_OR_TEXT + 16*row + col]);
+					}
+				}
+				is31_flip();
+			} else if (anim == SAO_ANIMATION_CHOICE_TEXT_SCROLL) {
+				// restart scrolling text with text from i2c buffer
+				// force null termination
+				i2c_registers[254] = '\0';
+				// restart scrolling text with new text:
+				textscroll_init(
+					&(i2c_registers[SAO_REG_DISPLAY_OR_TEXT]));
+			}
 		}
 
 		if (i2c_write_start <= SAO_REG_ANIMATION_CHOICE &&
