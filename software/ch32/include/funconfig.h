@@ -6,5 +6,7 @@
 
 // lib_rand needs to be configured with how random you want it to produce data.
 #define RANDOM_STRENGTH    2
+#define FUNCONF_DEBUGPRINTF_TIMEOUT 0x1000
+
 
 #endif
